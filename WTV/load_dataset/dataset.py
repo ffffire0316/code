@@ -12,7 +12,7 @@ class SleepData(Dataset):
         ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
 
         self.x,self.y=edf_read(psg_fnames,ann_fnames)
-        self.x_trans=self.x.reshape(len(self.x),1,30)
+        self.x_trans=self.x.reshape(len(self.x),1,3000)
         self.x_data= torch.from_numpy(self.x_trans)
         # self.x_data = torch.from_numpy(self.x)
         self.y_data = torch.from_numpy(self.y).long()
@@ -25,9 +25,13 @@ class SleepData(Dataset):
     def __len__(self):
         return self.x_data.size(0)
 
+rewrite=True
+
 if __name__ == "__main__":
     # 读取数据
     data_dir = r"E:\workstation\reference\xai-sleep\data\sleepedf"
+    data_dir = r"E:\xai-sleep1\data\sleepedf"
+
     sleep_dataset=SleepData(data_dir)
     train, test = torch.utils.data.random_split(dataset=sleep_dataset, lengths=[0.7,0.3])
     print(sleep_dataset)

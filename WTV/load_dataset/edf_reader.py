@@ -3,7 +3,7 @@ import numpy as np
 from psg_ann import Psg_Ann
 from mne.io import read_raw_edf
 import os
-
+# from dataset import rewrite
 class_dict = {
     0: "W",
     1: "N1",
@@ -40,7 +40,7 @@ def edf_read(psg_fnames,ann_fnames):
     else:
         print("读取edf文件")
         # for i in range(len(psg_fnames)):
-        for i in range(3):
+        for i in range(5):
             #读取edf文件
             raw=read_raw_edf(psg_fnames[i], preload=False, verbose=False)
             sampling_rate = raw.info['sfreq']

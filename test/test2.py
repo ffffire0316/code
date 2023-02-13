@@ -17,7 +17,7 @@ ann2label = {
     "Movement time": 5
 }
 
-data_dir=r"E:\workstation\reference\xai-sleep\data\sleepedf"
+data_dir=r"E:\xai-sleep1\data\sleepedf"
 output_dir=r"E:\workstation\reference\xai-sleep\data\edf20npz"
 psg_fnames = glob.glob(os.path.join(data_dir, "*PSG.edf"))
 ann_fnames = glob.glob(os.path.join(data_dir, "*Hypnogram.edf"))

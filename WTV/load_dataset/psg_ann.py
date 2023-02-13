@@ -4,12 +4,16 @@ from itertools import chain
 class Psg_Ann:
     def __init__(self,signal,annotation,interval):
         self.signal=signal
-        self.preprocess()
+        # self.preprocess()
         self.annotation=annotation
         self.interval=interval
         assert len(annotation) == len(interval)
         self.label=[]
         self._data=[]
+
+        if annotation[0] == 0:
+            self.annotation.pop(0)
+            self.interval.pop(0)
 
         for i in range(len(annotation)):
             # 对标签进行扩容以匹配data
@@ -24,14 +28,16 @@ class Psg_Ann:
                 # self.interval.pop(i)
             else:
                 self.label.append(np.full((index_len, 1), annotation[i]))
-                data1=self.signal[index_start:index_end]
+                data1=self.signal[index_start*100:index_end*100]
                 self._data.append(data1)
+        assert len(self._data) == len(self.label)
+        data_shape=len(self._data)
 
-        self.data_process = self.data2epoch(self._data, 30)
+        self.data_process = self.data2epoch(self._data, 3000)
         self.label = list(chain.from_iterable(self.label))
         self.label = np.array(self.label)
         self.label = self.label.flatten()
-
+        print(self.label)
 
     #对数据进行预处理
     def preprocess(self):

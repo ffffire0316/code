@@ -39,23 +39,40 @@ import torch.nn as nn
 # file=np.load(r"./123.npz")
 # print(file["x"])
 # x=np.arange(60).reshape(2,30)
-x=np.arange(60).reshape(2,1,30)
+x=np.arange(6000).reshape(2,1,3000)
 # print(x)
 x_tensor=torch.from_numpy(x).to(torch.float32)
-
 feature1 = nn.Sequential(
-    nn.Conv1d(in_channels=1, out_channels=64, kernel_size=1),
-    nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
-    nn.Conv1d(in_channels=64, out_channels=128, kernel_size=1),
-    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
-    nn.MaxPool1d(kernel_size=4, stride=4, padding=2),
-    nn.Flatten(),
-    nn.Linear(640,64),
-    nn.Linear(64,5)
-)
-out=feature1(x_tensor)
-print(out,out.shape)
+    nn.Conv1d(in_channels=1, out_channels=64, kernel_size=50, stride=6),
+    nn.MaxPool1d(kernel_size=8, stride=2),
+    nn.Dropout(0.5),
+    nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8, stride=1),
+    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
+    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
+    nn.MaxPool1d(kernel_size=4, stride=4),
 
+)
+
+feature2= nn.Sequential(
+    nn.Conv1d(in_channels=1, out_channels=64, kernel_size=400, stride=50),
+    nn.MaxPool1d(kernel_size=4, stride=4),
+    nn.Dropout(0.5),
+    nn.Conv1d(in_channels=64, out_channels=128, kernel_size=6),
+    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
+    nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
+    nn.MaxPool1d(kernel_size=2, stride=2),
+)
+# (2,1,3000)->(2,128,55)
+out1=feature1(x_tensor)
+# (2,1,3000)->(2,128,4)
+out2=feature2(x_tensor)
+# print(out,out.shape)
+x=np.arange(10)
+print(x)
+x.pop([0,5])
+print(x)
+for i in range(10):
+    print(i)
 #
 # accuary=(output.argmax(1)==target).sum()
 # print(accuary)
