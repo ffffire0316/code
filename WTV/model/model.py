@@ -22,17 +22,22 @@ class Model(nn.Module):
             nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
             nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
             nn.MaxPool1d(kernel_size=4, stride=4, padding=2),
+            nn.Flatten(),
+            nn.Linear(128*57,64),
+            nn.Linear(64,5),
+            nn.Sigmoid()
 
         )
-        self.squential2=nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=64, kernel_size=400,stride=50),
-            nn.MaxPool1d(kernel_size=4, stride=4, padding=4),
+        self.feature2 = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=64, kernel_size=400, stride=50),
+            nn.MaxPool1d(kernel_size=4, stride=4),
             nn.Dropout(0.5),
-            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8),
-            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
-            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
-            nn.MaxPool1d(kernel_size=2, stride=2, padding=2),
+            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=6),
+            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
+            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
+            nn.MaxPool1d(kernel_size=2, stride=2),
         )
+
 
 
 

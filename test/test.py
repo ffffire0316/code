@@ -62,7 +62,7 @@ feature2= nn.Sequential(
     nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
     nn.MaxPool1d(kernel_size=2, stride=2),
 )
-# (2,1,3000)->(2,128,55)
+# (2,1,3000)->(2,128,57)
 out1=feature1(x_tensor)
 # (2,1,3000)->(2,128,4)
 out2=feature2(x_tensor)
