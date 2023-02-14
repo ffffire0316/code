@@ -23,6 +23,7 @@ ann2label = {
     "Sleep stage ?": 5,
     "Movement time": 5
 }
+npz_path=r"E:\eason\project\deep learning\WTV\utils"
 
 def edf_read(psg_fnames,ann_fnames):
     # 获取路径
@@ -33,7 +34,7 @@ def edf_read(psg_fnames,ann_fnames):
     rewrite = False
     if not rewrite:
         # 读取npz文件
-        dataset_x,dataset_y=get_npz(basepath)
+        dataset_x,dataset_y=get_npz(npz_path)
         return dataset_x,dataset_y
 
     # 如果重写
@@ -76,9 +77,10 @@ def edf_read(psg_fnames,ann_fnames):
                 "y": process_signal.label,
                 "fs": sampling_rate
             }
-            np.savez(os.path.join(basepath,filename), **save_dict)
+            # np.savez(os.path.join(basepath,filename), **save_dict)
+            np.savez(os.path.join(npz_path,filename), **save_dict)
         print(" ---------- have saved the .npz file ---------")
-        dataset_x,dataset_y=get_npz(basepath)
+        dataset_x,dataset_y=get_npz(npz_path)
         return dataset_x,dataset_y
     print("  ----------have loaded all files----------")
 

@@ -42,14 +42,19 @@ import torch.nn as nn
 x=np.arange(6000).reshape(2,1,3000)
 # print(x)
 x_tensor=torch.from_numpy(x).to(torch.float32)
+
 feature1 = nn.Sequential(
     nn.Conv1d(in_channels=1, out_channels=64, kernel_size=50, stride=6),
-    nn.MaxPool1d(kernel_size=8, stride=2),
+    nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
     nn.Dropout(0.5),
     nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8, stride=1),
     nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
     nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
-    nn.MaxPool1d(kernel_size=4, stride=4),
+    nn.MaxPool1d(kernel_size=4, stride=4, padding=2),
+    # nn.Flatten(),
+    # nn.Linear(128*57,64),
+    # nn.Linear(64,5),
+    # nn.Sigmoid()
 
 )
 
@@ -62,11 +67,15 @@ feature2= nn.Sequential(
     nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
     nn.MaxPool1d(kernel_size=2, stride=2),
 )
+
 # (2,1,3000)->(2,128,57)
 out1=feature1(x_tensor)
 # (2,1,3000)->(2,128,4)
 out2=feature2(x_tensor)
 # print(out,out.shape)
+# input=[out1,out2]
+# input2=(out1,out2)
+x_concat = torch.cat((out1, out2), dim=2)
 x=np.arange(10)
 print(x)
 x.pop([0,5])

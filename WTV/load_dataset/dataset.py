@@ -6,12 +6,19 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
+import numpy as np
 class SleepData(Dataset):
     def __init__(self,data_path):
         psg_fnames = glob.glob(os.path.join(data_path, "*PSG.edf"))
         ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
 
         self.x,self.y=edf_read(psg_fnames,ann_fnames)
+        n_0=np.sum(self.y==0)
+        n_1=np.sum(self.y==1)
+        n_2=np.sum(self.y==2)
+        n_3=np.sum(self.y==3)
+        print(n_0,n_1,n_2,n_3)
+
         self.x_trans=self.x.reshape(len(self.x),1,3000)
         self.x_data= torch.from_numpy(self.x_trans)
         # self.x_data = torch.from_numpy(self.x)
@@ -36,7 +43,7 @@ if __name__ == "__main__":
     train, test = torch.utils.data.random_split(dataset=sleep_dataset, lengths=[0.7,0.3])
     print(sleep_dataset)
 
-    BATCH_SIZE=3
+    BATCH_SIZE=32
     train_loader=torch.utils.data.DataLoader(
     # 从数据库中每次抽出batch size个样本
     dataset=train,       # torch TensorDataset format
@@ -59,7 +66,7 @@ if __name__ == "__main__":
     # loss_fn = nn.CrossEntropyLoss()
     loss_fn = nn.MSELoss()
     # 优化器
-    learning_rate = 0.01
+    learning_rate = 0.1
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     # 训练轮数
     epoch = 20
@@ -75,7 +82,7 @@ if __name__ == "__main__":
         model.train()
         for data,label in train_loader:
             input=data.float()
-            # target=F.one_hot(label)
+
             target=label.to(torch.float32)
             output=model(input).to(torch.float32)
             loss=loss_fn(output,target)
@@ -99,9 +106,6 @@ if __name__ == "__main__":
                 input=data.float()
                 target=label.to(torch.float32)
                 output=model(input).to(torch.float32)
-                sigel_acc=output.argmax(1)
-                target_acc=target.argmax(1)
-                # xxx_acc=output.argmax(0)
                 loss = loss_fn(output, target)
                 total_test_loss=total_test_loss+loss.item()
                 accuracy=(output.argmax(1)==target.argmax(1)).sum()
