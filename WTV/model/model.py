@@ -12,7 +12,7 @@ class Model(nn.Module):
         self.feature1=nn.Sequential(
             nn.Conv1d(in_channels=1, out_channels=64, kernel_size=50,stride=6),
             nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
-            nn.Dropout(0.1),
+            # nn.Dropout(0.1),
             nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8,stride=1),
             nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
             nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
@@ -23,21 +23,21 @@ class Model(nn.Module):
         self.feature2 = nn.Sequential(
             nn.Conv1d(in_channels=1, out_channels=64, kernel_size=400, stride=50),
             nn.MaxPool1d(kernel_size=4, stride=4),
-            nn.Dropout(0.1),
+            # nn.Dropout(0.1),
             nn.Conv1d(in_channels=64, out_channels=128, kernel_size=6),
             nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
             nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
             nn.MaxPool1d(kernel_size=2, stride=2),
         )
         self.reclassify=nn.Sequential(
-            nn.Dropout(0.1),
+            # nn.Dropout(0.1),
             nn.Flatten(),
             nn.Linear(128*61,64),
             nn.Sigmoid(),
             nn.Linear(64, 20),
             nn.Sigmoid(),
             nn.Linear(20,5),
-            nn.Sigmoid()
+            nn.Softmax(dim=1)
 
         )
 

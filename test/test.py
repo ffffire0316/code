@@ -72,9 +72,6 @@ feature2= nn.Sequential(
 out1=feature1(x_tensor)
 # (2,1,3000)->(2,128,4)
 out2=feature2(x_tensor)
-# print(out,out.shape)
-# input=[out1,out2]
-# input2=(out1,out2)
 x_concat = torch.cat((out1, out2), dim=2)
 x=np.arange(10)
 print(x)

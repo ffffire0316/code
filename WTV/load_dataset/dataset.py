@@ -20,10 +20,12 @@ class SleepData(Dataset):
         print(n_0,n_1,n_2,n_3)
 
         self.x_trans=self.x.reshape(len(self.x),1,3000)
-        self.x_data= torch.from_numpy(self.x_trans)
-        # self.x_data = torch.from_numpy(self.x)
+        # x1=self.x[0]
+        # x2=self.x_trans[0]
+        self.x_data= torch.from_numpy(self.x_trans).float()
         self.y_data = torch.from_numpy(self.y).long()
-        self.y_data=F.one_hot(self.y_data)
+        self.y_data=F.one_hot(self.y_data).float()
+        # print(self)
 
     def __getitem__(self, index):
         # pass
@@ -43,7 +45,7 @@ if __name__ == "__main__":
     train, test = torch.utils.data.random_split(dataset=sleep_dataset, lengths=[0.7,0.3])
     print(sleep_dataset)
 
-    BATCH_SIZE=32
+    BATCH_SIZE=64
     train_loader=torch.utils.data.DataLoader(
     # 从数据库中每次抽出batch size个样本
     dataset=train,       # torch TensorDataset format
@@ -58,18 +60,19 @@ if __name__ == "__main__":
         shuffle=True,  # 要不要打乱数据 (打乱比较好)
         num_workers=0,  # 多线程来读数据
     )
-    # for x,y in test_loader:
-    #     print(y)
     # 创建网络模型
     model = Model()
+    if torch.cuda.is_available():
+        model=model.cuda()
     # 损失函数
-    # loss_fn = nn.CrossEntropyLoss()
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.CrossEntropyLoss()
+    loss_fn=loss_fn.cuda()
+    # loss_fn = nn.MSELoss()
     # 优化器
-    learning_rate = 0.1
+    learning_rate = 0.001
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epoch = 20
+    epoch = 50
     total_train_step = 0
     total_test_step = 0
     #添加tensorboard
@@ -77,16 +80,20 @@ if __name__ == "__main__":
 
     for i in range(epoch):
         print("-------第{}论训练开始--------".format(i + 1))
-
+        total_test_acc=0
         # # 训练开始 遍历每个人的数据
         model.train()
         for data,label in train_loader:
-            input=data.float()
+            input=data
+            target=label
+            if torch.cuda.is_available():
+                input=input.cuda()
+                target=target.cuda()
 
-            target=label.to(torch.float32)
-            output=model(input).to(torch.float32)
+            output=model(input)
             loss=loss_fn(output,target)
-
+            test_accuracy = (output.argmax(1) == target.argmax(1)).sum()
+            total_test_acc=total_test_acc+test_accuracy
             # 优化器优化
             optimizer.zero_grad()
             loss.backward()
@@ -95,7 +102,9 @@ if __name__ == "__main__":
             total_train_step=total_train_step+1
             if total_train_step%100==0:
                 print("训练次数：{}，Loss：{}".format(total_train_step,loss.item()))
+                print("训练正确率Acc：{}".format(total_test_acc/len(train)))
                 writer.add_scalar("train_loss",loss.item(),total_train_step)
+                writer.add_scalar("train_acc", total_test_acc/len(train), total_train_step)
 
         # 测试开始
         model.eval()
@@ -103,13 +112,18 @@ if __name__ == "__main__":
         total_accuracy = 0
         with torch.no_grad():
             for data,label in test_loader:
-                input=data.float()
-                target=label.to(torch.float32)
-                output=model(input).to(torch.float32)
-                loss = loss_fn(output, target)
-                total_test_loss=total_test_loss+loss.item()
-                accuracy=(output.argmax(1)==target.argmax(1)).sum()
-                total_accuracy=total_accuracy+accuracy
+                test_input=data
+                test_target=label
+                if torch.cuda.is_available():
+                    test_input=test_input.cuda()
+                    test_target=test_target.cuda()
+
+                test_output=model(test_input)
+                test_loss = loss_fn(test_output, test_target)
+                total_test_loss=total_test_loss+test_loss.item()
+
+                test_accuracy=(test_output.argmax(1)==test_target.argmax(1)).sum()
+                total_accuracy=total_accuracy+test_accuracy
             print("total test loss:{}".format(total_test_loss))
             print("total test accuracy{}".format(total_accuracy/len(test)))
             writer.add_scalar("test_loss",total_test_loss,total_test_step)
