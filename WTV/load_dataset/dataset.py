@@ -45,7 +45,7 @@ if __name__ == "__main__":
     train, test = torch.utils.data.random_split(dataset=sleep_dataset, lengths=[0.7,0.3])
     print(sleep_dataset)
 
-    BATCH_SIZE=64
+    BATCH_SIZE=128
     train_loader=torch.utils.data.DataLoader(
     # 从数据库中每次抽出batch size个样本
     dataset=train,       # torch TensorDataset format
@@ -69,10 +69,10 @@ if __name__ == "__main__":
     loss_fn=loss_fn.cuda()
     # loss_fn = nn.MSELoss()
     # 优化器
-    learning_rate = 0.001
+    learning_rate = 0.0012
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epoch = 50
+    epoch = 100
     total_train_step = 0
     total_test_step = 0
     #添加tensorboard
