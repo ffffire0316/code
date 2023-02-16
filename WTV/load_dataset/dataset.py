@@ -91,12 +91,10 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
     loss_fn = loss_fn.cuda()
     # 优化器
-    learning_rate = 0.00008
-    optimizer = torch.optim.SGD(
-        model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4
-    )
+    learning_rate = 1e-5
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epochs = 200
+    epochs = 100
     total_train_step = 0
     # 添加tensorboard
     writer = SummaryWriter("./log")
@@ -142,9 +140,9 @@ if __name__ == "__main__":
                 loss = loss_fn(test_output, test_target)
 
                 test_loss += loss.clone().mean()
-                test_acc += (test_output.argmax(1) == test_target).sum()/ BATCH_SIZE
-        test_loss /= idx+1
-        test_acc /= idx+1
+                test_acc += (test_output.argmax(1) == test_target).sum() / BATCH_SIZE
+        test_loss /= idx + 1
+        test_acc /= idx + 1
         print("test loss:{}".format(test_loss))
         print("test accuracy{}".format(test_acc))
         writer.add_scalar("test_loss", test_loss, i)
