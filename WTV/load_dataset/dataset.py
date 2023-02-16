@@ -69,8 +69,8 @@ if __name__ == "__main__":
     loss_fn=loss_fn.cuda()
     # loss_fn = nn.MSELoss()
     # 优化器
-    learning_rate = 0.0012
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    learning_rate = 0.00008
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,momentum=0.9,weight_decay=5e-4)
     # 训练轮数
     epoch = 100
     total_train_step = 0
@@ -102,9 +102,11 @@ if __name__ == "__main__":
             total_train_step=total_train_step+1
             if total_train_step%100==0:
                 print("训练次数：{}，Loss：{}".format(total_train_step,loss.item()))
-                print("训练正确率Acc：{}".format(total_test_acc/len(train)))
+                # print("训练正确率Acc：{}".format(total_test_acc/len(train)))
                 writer.add_scalar("train_loss",loss.item(),total_train_step)
-                writer.add_scalar("train_acc", total_test_acc/len(train), total_train_step)
+                # writer.add_scalar("train_acc", total_test_acc/len(train), total_train_step)
+        print("训练正确率Acc：{}".format(total_test_acc / len(train)))
+        writer.add_scalar("train_acc", total_test_acc / len(train), total_train_step)
 
         # 测试开始
         model.eval()
