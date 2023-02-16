@@ -36,19 +36,24 @@ class WaveletLayer(nn.Module):
     def __init__(self):
         super(WaveletLayer, self).__init__()
         # 第一层权重和偏置
-        self.weight1 = nn.Parameter(0.01 * torch.randn(74, 2048))
+        # self.weight1 = nn.Parameter(0.01 * torch.randn(74, 2048))
+        self.weight1 = nn.Parameter(0.01 * torch.randn(74, 3000))
         self.bias1 = nn.Parameter(0.01 * torch.randn(74, 1))
         # 偏移和尺度
         self.a = nn.Parameter(0.01 * torch.randn(74, 1))
         self.b = nn.Parameter(0.01 * torch.randn(74, 1))
         # 第二层权重和偏置
-        self.weight2 = nn.Parameter(0.01 * torch.randn(2048, 74))
-        self.bias2 = nn.Parameter(0.01 * torch.randn(2048, 1))
+        # self.weight2 = nn.Parameter(0.01 * torch.randn(2048, 74))
+        # self.bias2 = nn.Parameter(0.01 * torch.randn(2048, 1))
+
+        self.weight2 = nn.Parameter(0.01 * torch.randn(3000, 74))
+        self.bias2 = nn.Parameter(0.01 * torch.randn(3000, 1))
 
     # TODO: How to built a neural network layer by using wave transform?
     def forward(self, x):
         y = (
-            torch.matmul(self.weight1, x.view(x.size(0), 2048, -1)) + self.bias1
+            # torch.matmul(self.weight1, x.view(x.size(0), 2048, -1)) + self.bias1
+            torch.matmul(self.weight1, x.view(x.size(0), 3000, -1)) + self.bias1
         )  # 矩阵相乘+偏置
         y = torch.div(y - self.b, self.a)  # 偏移因子和尺度因子
         y = self.WaveletFunction(y)  # 小波基函数
@@ -71,3 +76,23 @@ class WaveletLayer(nn.Module):
             torch.exp(torch.mul(-0.5, torch.mul(inputs, inputs))),
         )
         return outputs
+
+if __name__=="__main__":
+    model=WaveletLayer()
+    import numpy as np
+    # x = np.arange(6000).reshape(2, 1, 3000)
+    # print(x)
+    # x_tensor = torch.from_numpy(x).to(torch.float32)
+    x1 = torch.arange(0, 6000).view(2,3000)
+    size=x1.size(0)
+    x_trans=x1.view(x1.size(0), 3000, -1)
+    wave=model.WaveletFunction(x1)
+    print(wave)
+    # x2=x1.view([2,3000])
+    # print(x2)
+    # x3=x.view([2,3000])
+    # print(x3)
+    # x_=x.view(2,3000)
+    out=model(x1)
+
+    print(out)

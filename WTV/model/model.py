@@ -60,22 +60,24 @@ class Model(nn.Module):
         )
         self.res=nn.Linear(128*61,1024)
         self.reclassify=nn.Sequential(
-            # # nn.Dropout(0.1),
-            # nn.Flatten(),
-            # nn.Linear(128*61,64),
-            # nn.Sigmoid(),
-            # nn.Linear(64, 20),
-            # nn.Sigmoid(),
-            # nn.Linear(20,5),
-            # nn.Softmax(dim=1)
             nn.Dropout(),
             nn.Linear(1024,5)
 
         )
 
-
+    def WaveletFunction(self, inputs):
+        """
+               小波函数
+               :param inputs 输入变量
+               """
+        outputs = torch.mul(
+            torch.cos(torch.mul(inputs, 1.75)),
+            torch.exp(torch.mul(-0.5, torch.mul(inputs, inputs))),
+        )
+        return outputs
 
     def forward(self,x):
+        x=self.WaveletFunction(x)
         x1=self.feature1(x)
         x2=self.feature2(x)
         out1=torch.cat((x1,x2),dim=2) # weidu [bs,128,61]
