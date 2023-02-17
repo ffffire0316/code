@@ -25,7 +25,7 @@ if os.path.isfile(dataset_file_path):
 else:
     from edf_reader import edf_read
 
-    dataset_file_path = r"E:\xai-sleep1\data\sleepedf"
+    dataset_file_path = r"E:\xai-sleep\data\sleepedf"
     is_dataset_file_existing = False
 
 
@@ -59,7 +59,7 @@ class SleepData(Dataset):
         return self.x_data.size(0)
 
 
-rewrite = True
+# rewrite = True
 
 if __name__ == "__main__":
     # 读取数据
@@ -119,6 +119,7 @@ if __name__ == "__main__":
             optimizer.step()
             train_loss += loss.clone().mean()
             train_acc += (output.argmax(1) == target).sum() / BATCH_SIZE
+
         train_loss /= idx + 1
         train_acc /= idx + 1
         # print("训练正确率Acc：{}".format(total_test_acc/len(train)))

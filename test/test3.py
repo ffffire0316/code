@@ -14,7 +14,6 @@ for i in range(len(annotation)):
 
 print(annotation,duration)
 
-
 ann2label = {
     "Sleep stage W": 0,
     "Sleep stage 1": 1,

@@ -33,19 +33,12 @@ for i in range(len(annotation)):
     index_start=interval[i][0]
     index_end=interval[i][1]
     data1 = data[index_start:index_end]
-    # print(interval[i][0])
-    # print(interval[i][1])
     index_len=int((index_end-index_start)/30)
     x_data.append(data1)
     label.append(np.full((index_len,1),annotation[i]))
 
 data_process=data2epoch(x_data,epoch)
 
-# data_process=list(chain.from_iterable(data_process))
-# data_process=np.array(data_process)
-# data_process=data_process.transpose()
-# label=np.append(label)
-# print(label)
 
 label=list(chain.from_iterable(label))
 label=np.array(label)

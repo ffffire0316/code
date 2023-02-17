@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
-
+import pywt
 class BiLSTM(nn.Module):
     def __init__(self,input_size,hidden_size,num_layer):
         super(BiLSTM, self).__init__()
@@ -16,13 +16,36 @@ class BiLSTM(nn.Module):
         out,_=self.lstm(x,(h0,c0))
         return out
 
+
+class WaveletTransLayer(nn.Module):
+    """
+    小波变换层
+    """
+    def __init__(self):
+        super(WaveletTransLayer,self).__init__()
+
+    def forward(self,x):
+        # print(x)
+        output=self.waveletfunction(x)
+        return output
+
+    def waveletfunction(self,input):
+        wavename = 'db5'
+        # print(input)
+        input1=input.flatten(1,2).cpu().numpy()
+        cA, cD = pywt.dwt(input1, wavename)
+        ya = pywt.idwt(cA, None, wavename, 'smooth')  # approximated component dipin
+        yd = pywt.idwt(None, cD, wavename, 'smooth')  # detailed component gaopin
+
+        ya=torch.from_numpy(ya).cuda().unsqueeze(1)
+        return ya
+        # return outputs
+
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         # (N,in_channel,x)->(N,out_channels,x_)
         # 卷积核大小为kernel_size*in_channels
-        # 共['Sleep stage 1','Sleep stage 2','Sleep stage 3','Sleep stage 4','Sleep stage ?','Sleep stage R','Sleep stage W']
-        # self.function = torch.nn.funcitonal.sigmoid
         self.feature1=nn.Sequential(
             nn.Conv1d(in_channels=1, out_channels=64, kernel_size=50,stride=6),
             nn.BatchNorm1d(64),
@@ -37,7 +60,6 @@ class Model(nn.Module):
             nn.BatchNorm1d(128),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(kernel_size=4, stride=4, padding=2),
-
 
         )
         self.feature2 = nn.Sequential(
@@ -62,22 +84,12 @@ class Model(nn.Module):
         self.reclassify=nn.Sequential(
             nn.Dropout(),
             nn.Linear(1024,5)
-
         )
-
-    def WaveletFunction(self, inputs):
-        """
-               小波函数
-               :param inputs 输入变量
-               """
-        outputs = torch.mul(
-            torch.cos(torch.mul(inputs, 1.75)),
-            torch.exp(torch.mul(-0.5, torch.mul(inputs, inputs))),
+        self.prelayer=nn.Sequential(
+            WaveletTransLayer()
         )
-        return outputs
-
     def forward(self,x):
-        x=self.WaveletFunction(x)
+        x=self.prelayer(x)
         x1=self.feature1(x)
         x2=self.feature2(x)
         out1=torch.cat((x1,x2),dim=2) # weidu [bs,128,61]
