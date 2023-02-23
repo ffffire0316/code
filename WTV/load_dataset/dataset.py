@@ -15,7 +15,8 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-
+from model.loss import *
+from model.metric import *
 ########################################################################
 # check file is existing
 ########################################################################
@@ -28,7 +29,7 @@ else:
     dataset_file_path = r"E:\xai-sleep\data\sleepedf"
     is_dataset_file_existing = False
 
-
+class_dict = { "W", "N1", "N2", "N3", "REM"}
 class SleepData(Dataset):
     def __init__(self, data_path, flag):
         if flag:
@@ -42,14 +43,13 @@ class SleepData(Dataset):
             n_1 = np.sum(self.y == 1)
             n_2 = np.sum(self.y == 2)
             n_3 = np.sum(self.y == 3)
-            print(n_0, n_1, n_2, n_3)
+            n_4 = np.sum(self.y == 4)
+            print(n_0, n_1, n_2, n_3,n_4)
 
         self.x_trans = self.x.reshape(len(self.x), 1, 3000)
-        # x1=self.x[0]
-        # x2=self.x_trans[0]
         self.x_data = torch.from_numpy(self.x_trans).float()
         self.y_data = torch.from_numpy(self.y).long()
-        # print(self)
+
 
     def __getitem__(self, index):
         # pass
@@ -58,7 +58,11 @@ class SleepData(Dataset):
     def __len__(self):
         return self.x_data.size(0)
 
-
+def Confusion_Matrix(preds,target,conf_matrix):
+  preds=preds.argmax(1)
+  for i,j in zip(target,preds):
+    conf_matrix[i,j]+=1
+  return conf_matrix
 # rewrite = True
 
 if __name__ == "__main__":
@@ -67,7 +71,7 @@ if __name__ == "__main__":
     train, test = torch.utils.data.random_split(
         dataset=sleep_dataset, lengths=[0.7, 0.3]
     )
-
+    test_num=len(test)
     BATCH_SIZE = 128
     train_loader = torch.utils.data.DataLoader(
         # 从数据库中每次抽出batch size个样本
@@ -88,21 +92,26 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         model = model.cuda()
     # 损失函数
-    loss_fn = nn.CrossEntropyLoss()
+    # loss_fn = nn.CrossEntropyLoss()
+    loss_fn=FocalLoss()
     loss_fn = loss_fn.cuda()
     # 优化器
     learning_rate = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epochs = 100
+    epochs = 75
     total_train_step = 0
     # 添加tensorboard
     writer = SummaryWriter("./log")
+    # # 添加 混淆矩阵
+    # conf_matrix=torch.zeros(5,5)
 
     for i in range(epochs):
         print("-------第{}代训练开始--------".format(i + 1))
         train_loss = 0
         train_acc = 0
+        # 添加 混淆矩阵
+        conf_matrix = torch.zeros(5, 5)
         # # 训练开始 遍历每个人的数据
         model.train()
         for idx, (data, label) in enumerate(train_loader):
@@ -142,10 +151,32 @@ if __name__ == "__main__":
 
                 test_loss += loss.clone().mean()
                 test_acc += (test_output.argmax(1) == test_target).sum() / BATCH_SIZE
+                conf_matrix=Confusion_Matrix(preds=test_output,target=test_target,conf_matrix=conf_matrix)
+                # conf_matrix=conf_matrix.cpu()
+
         test_loss /= idx + 1
         test_acc /= idx + 1
         print("test loss:{}".format(test_loss))
         print("test accuracy{}".format(test_acc))
         writer.add_scalar("test_loss", test_loss, i)
         writer.add_scalar("test_acc", test_acc, i)
+
+        # conf_matrix = np.array(conf_matrix.cpu())
+        # corrects = conf_matrix.diagonal(offset=0)
+        # per_kinds = conf_matrix.sum(axis=1)
+        #
+        # print("混淆矩阵总元素个数：{0},测试集总个数:{1}".format(int(np.sum(conf_matrix)), test_num))
+        # print(conf_matrix)
+        # print("每种睡眠阶段总个数：", per_kinds)
+        # print("每种睡眠阶段预测正确的个数：", corrects)
+        # print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / per_kinds]))
+    conf_matrix = np.array(conf_matrix.cpu())
+    corrects = conf_matrix.diagonal(offset=0)
+    per_kinds = conf_matrix.sum(axis=1)
+    print("混淆矩阵总元素个数：{0},测试集总个数:{1}".format(int(np.sum(conf_matrix)), test_num))
+    print(conf_matrix)
+    print("每种睡眠阶段总个数：", per_kinds)
+    print("每种睡眠阶段预测正确的个数：", corrects)
+    print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / per_kinds]))
+    show_conf_mat(conf_matrix, class_dict)
     writer.close()
