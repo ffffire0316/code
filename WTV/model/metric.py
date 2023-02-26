@@ -21,14 +21,43 @@ def show_conf_mat(cm,classes,normalize=False,title="Confusion matrix",cmap=plt.c
   - normalize : True:显示百分比, False:显示个数
   '''
   # import matplotlib as plt
-  # conf_matrix = np.array(cm.cpu())
-  # corrects = conf_matrix.diagonal(offset=0)
-  # per_kinds = conf_matrix.sum(axis=1)
+  try:
+    conf_matrix = np.array(cm.cpu())
+  except:
+    pass
+  corrects = conf_matrix.diagonal(offset=0)
+  # 各列相加得到每类样本的数量
+  true_kinds = conf_matrix.sum(axis=1)
+  # 各行相加得到预测结果中每类数量
+  pred_kinds = conf_matrix.sum(axis=0)
+  # 总数
+  sum_num=np.sum(conf_matrix)
+  # 真阴性数量
+  TN = sum_num-true_kinds-pred_kinds+corrects
+  FP=pred_kinds-corrects
+
+
+  # 准确率和召回率
+  try:
+    precison=corrects/true_kinds
+    recall=corrects/pred_kinds
+    specificity=TN/(TN+FP)
+    F1= (precison+recall) / 2
+    MF1=(2*precison*recall/(precison+recall)).mean()
+    MGm=(np.power((specificity*recall),0.5)).mean()
+  except:
+    precison=0
+    recall=0
+
+  # test_num=int(np.sum(conf_matrix))
   # print("混淆矩阵总元素个数：{0},测试集总个数:{1}".format(int(np.sum(conf_matrix)), test_num))
-  # print(conf_matrix)
-  # print("每种睡眠阶段总个数：", per_kinds)
-  # print("每种睡眠阶段预测正确的个数：", corrects)
-  # print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / per_kinds]))
+  print(conf_matrix)
+  print("每种睡眠阶段总个数：", true_kinds)
+  print("每种睡眠阶段预测正确的个数：", corrects)
+  print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / true_kinds]))
+  print("每一类的F1得分：{0}".format(F1))
+  print("每一类的MF1得分：{0}".format(MF1))
+  print("每一类的MGm得分：{0}".format(MGm))
   if normalize:
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     print("Normalized confusion matrix")

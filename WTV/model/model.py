@@ -41,9 +41,9 @@ class WaveletTransLayer(nn.Module):
         return ya
         # return outputs
 
-class Model(nn.Module):
+class DeepSleepNet(nn.Module):
     def __init__(self):
-        super(Model, self).__init__()
+        super(DeepSleepNet,self).__init__()
         # (N,in_channel,x)->(N,out_channels,x_)
         # 卷积核大小为kernel_size*in_channels
         self.feature1=nn.Sequential(
@@ -106,7 +106,7 @@ class Model(nn.Module):
 
 if __name__ == "__main__":
 
-    model=Model()
+    model=DeepSleepNet()
     model=model.cuda()
     input=np.ones((10,1,3000))
     input=torch.tensor(input,dtype=torch.float32).cuda()

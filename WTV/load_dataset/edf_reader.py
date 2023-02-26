@@ -39,9 +39,9 @@ def edf_read(psg_fnames,ann_fnames):
 
     # 如果重写
     else:
-        print("读取edf文件")
-        # for i in range(len(psg_fnames)):
-        for i in range(5):
+        print("读取edf文件,共{}".format(len(psg_fnames)))
+        for i in range(len(psg_fnames)):
+        # for i in range(5):
             #读取edf文件
             raw=read_raw_edf(psg_fnames[i], preload=False, verbose=False)
             sampling_rate = raw.info['sfreq']

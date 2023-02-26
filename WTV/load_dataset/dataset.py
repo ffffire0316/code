@@ -7,7 +7,7 @@ import sys
 working_dir = os.getcwd()
 sys.path.append(working_dir)
 
-from model.model import Model
+from model.model import DeepSleepNet
 import glob
 import torch
 import torch.nn as nn
@@ -29,7 +29,7 @@ else:
     dataset_file_path = r"E:\xai-sleep\data\sleepedf"
     is_dataset_file_existing = False
 
-class_dict = { "W", "N1", "N2", "N3", "REM"}
+# class_dict = { "W", "N1", "N2", "N3", "REM"}
 class SleepData(Dataset):
     def __init__(self, data_path, flag):
         if flag:
@@ -58,12 +58,6 @@ class SleepData(Dataset):
     def __len__(self):
         return self.x_data.size(0)
 
-def Confusion_Matrix(preds,target,conf_matrix):
-  preds=preds.argmax(1)
-  for i,j in zip(target,preds):
-    conf_matrix[i,j]+=1
-  return conf_matrix
-# rewrite = True
 
 if __name__ == "__main__":
     # 读取数据
@@ -72,7 +66,7 @@ if __name__ == "__main__":
         dataset=sleep_dataset, lengths=[0.7, 0.3]
     )
     test_num=len(test)
-    BATCH_SIZE = 128
+    BATCH_SIZE = 256
     train_loader = torch.utils.data.DataLoader(
         # 从数据库中每次抽出batch size个样本
         dataset=train,  # torch TensorDataset format
@@ -88,7 +82,7 @@ if __name__ == "__main__":
         num_workers=0,  # 多线程来读数据
     )
     # 创建网络模型
-    model = Model()
+    model = DeepSleepNet()
     if torch.cuda.is_available():
         model = model.cuda()
     # 损失函数
@@ -99,7 +93,7 @@ if __name__ == "__main__":
     learning_rate = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epochs = 75
+    epochs = 100
     total_train_step = 0
     # 添加tensorboard
     writer = SummaryWriter("./log")
@@ -160,23 +154,6 @@ if __name__ == "__main__":
         print("test accuracy{}".format(test_acc))
         writer.add_scalar("test_loss", test_loss, i)
         writer.add_scalar("test_acc", test_acc, i)
-
-        # conf_matrix = np.array(conf_matrix.cpu())
-        # corrects = conf_matrix.diagonal(offset=0)
-        # per_kinds = conf_matrix.sum(axis=1)
-        #
-        # print("混淆矩阵总元素个数：{0},测试集总个数:{1}".format(int(np.sum(conf_matrix)), test_num))
-        # print(conf_matrix)
-        # print("每种睡眠阶段总个数：", per_kinds)
-        # print("每种睡眠阶段预测正确的个数：", corrects)
-        # print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / per_kinds]))
-    conf_matrix = np.array(conf_matrix.cpu())
-    corrects = conf_matrix.diagonal(offset=0)
-    per_kinds = conf_matrix.sum(axis=1)
-    print("混淆矩阵总元素个数：{0},测试集总个数:{1}".format(int(np.sum(conf_matrix)), test_num))
-    print(conf_matrix)
-    print("每种睡眠阶段总个数：", per_kinds)
-    print("每种睡眠阶段预测正确的个数：", corrects)
-    print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / per_kinds]))
+    # 显示混淆矩阵
     show_conf_mat(conf_matrix, class_dict)
     writer.close()
