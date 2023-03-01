@@ -1,59 +1,17 @@
 import numpy as np
 import os
-label2int={'Sleep stage 1': 0, 'Sleep stage 2': 1, 'Sleep stage 3': 2, 'Sleep stage 4': 3, 'Sleep stage ?': 4, 'Sleep stage R': 5, 'Sleep stage W': 6}
-# merge 2 3 delete 4 6
-annotation=[1,0,1,2,5]
-# annotation1={1,0,1,2,5}
-print(annotation)
-duration=[(1,2),(2,3),(21,3),(22,3),(24,3)]
-for i in range(len(annotation)):
-    if annotation[i]==5:
-        print(i)
-        annotation.pop(i)
-        duration.pop(i)
+import openai
 
-print(annotation,duration)
+openai.api_key = "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"
 
-ann2label = {
-    "Sleep stage W": 0,
-    "Sleep stage 1": 1,
-    "Sleep stage 2": 2,
-    "Sleep stage 3": 3,
-    "Sleep stage 4": 3,
-    "Sleep stage R": 4,
-    "Sleep stage ?": 5,
-    "Movement time": 5
-}
+response = openai.Completion.create(
+    model="text-davinci-003",  # 模型选择达芬奇
+    prompt="基于pytorh实现focalloss损失函数",  # 提问
+    temperature=0.8,
+    max_tokens=2000,  # 生成答案的字节数
+    top_p=1.0,  # 跟temperature有点类似，结果概率的前面的选择
+    frequency_penalty=0.5,  # [-2,2]频率太高的词的惩罚,就是减少重复的词出现(比如小于0会出现很多重复词)
+    presence_penalty=0.0,  # [-2,2]围绕着提问来回答的程度(比如小于0的回答会过于紧扣主题)
+)
 
-
-# ar1 = np.random.rand(2,3)
-# ar2 = np.arange(4)
-# np.savez(r"E:\workstation\reference\xai-sleep\data\edf20npz",ar1,ar2)
-# datas = np.load(r"E:\workstation\reference\xai-sleep\data\edf20npz.npz")
-# print(os.absabspa)
-# for key, arr in datas.items():
-#   print(key, ": ", arr)
-# print(datas)
-# path = os.path.abspath(__file__)
-# print(path)
-# a,b=os.path.split(path)
-# print(b)
-# file_list = os.listdir("./")
-# print(file_list)
-# for file_name in file_list:
-#     print(file_name[-3:])
-# path = os.path.dirname(path)
-# print(path)
-# x=np.ones((2880,30))
-# y=np.zeros((1000,30))
-# z=[]
-# print(x)
-# print(x.shape)
-# print("________________________")
-# # z=np.append(x,y)
-# # print(z)
-# # print(z.shape)
-# print("________________________")
-# x=np.concatenate((x,y))
-# print(x,x.shape)
-# np.c
+print(response.choices[0].text)

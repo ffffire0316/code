@@ -3,6 +3,7 @@ import numpy as np
 from psg_ann import Psg_Ann
 from mne.io import read_raw_edf
 import os
+import glob
 # from dataset import rewrite
 class_dict = {
     0: "W",
@@ -23,22 +24,25 @@ ann2label = {
     "Sleep stage ?": 5,
     "Movement time": 5
 }
-npz_path=r"E:\eason\project\deep learning\WTV\utils"
+npz_path=r"E:\eason\project\deep learning\WTV\load_dataset/data_edf_20_npz"
 
-def edf_read(psg_fnames,ann_fnames):
+def edf_read(data_path,rewrite=False,npz_path=npz_path):
+    psg_fnames = glob.glob(os.path.join(data_path, "*PSG.edf"))
+    ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
     # 获取路径
-    path = os.path.abspath(psg_fnames[0])
-    basepath = os.path.dirname(path)
-
+    # path = os.path.abspath(psg_fnames[0])
+    # basepath = os.path.dirname(path)
     # rewrite=True
-    rewrite = False
+    # rewrite = False
     if not rewrite:
         # 读取npz文件
-        dataset_x,dataset_y=get_npz(npz_path)
-        return dataset_x,dataset_y
-
+        try:
+            dataset_x,dataset_y=get_npz(npz_path)
+            return dataset_x,dataset_y
+        except:
+            print("npz do not exist")
     # 如果重写
-    else:
+    if rewrite:
         print("读取edf文件,共{}".format(len(psg_fnames)))
         for i in range(len(psg_fnames)):
         # for i in range(5):
@@ -71,7 +75,7 @@ def edf_read(psg_fnames,ann_fnames):
             process_signal=Psg_Ann(data,annotation,interval)
 
             # Saving as numpy files
-            filename = os.path.basename(psg_fnames[i]).replace(".edf", ".npz")
+            filename = os.path.basename(psg_fnames[i]).replace(".edf", "(raw).npz")
             save_dict = {
                 "x": process_signal.data_process,
                 "y": process_signal.label,
@@ -79,10 +83,10 @@ def edf_read(psg_fnames,ann_fnames):
             }
             # np.savez(os.path.join(basepath,filename), **save_dict)
             np.savez(os.path.join(npz_path,filename), **save_dict)
-        print(" ---------- have saved the .npz file ---------")
+            print(" ---------- have saved the {} file in {} ---------".format(filename,npz_path))
         dataset_x,dataset_y=get_npz(npz_path)
+        print("  ----------have loaded all files----------")
         return dataset_x,dataset_y
-    print("  ----------have loaded all files----------")
 
 
 def get_npz(npz_path):

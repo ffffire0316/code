@@ -8,7 +8,7 @@ b=1
 print(b-a)
 ann2label = {
     "Sleep stage W": 0,
-   "Sleep stage 1": 1,
+   "Sleep stage 1":  1,
     "Sleep stage 2": 2,
     "Sleep stage 3": 3,
     "Sleep stage 4": 3,

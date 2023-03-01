@@ -12,7 +12,7 @@ import pywt
 import matplotlib.pyplot as plt
 import os
 npz_path=r"E:\eason\project\deep learning\WTV\utils"
-
+import openai
 
 def get_npz(npz_path):
     file_name_list = []

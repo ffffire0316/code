@@ -4,7 +4,7 @@ from itertools import chain
 class Psg_Ann:
     def __init__(self,signal,annotation,interval):
         self.signal=signal
-        self.preprocess()
+        # self.preprocess()
         self.annotation=annotation
         self.interval=interval
         assert len(annotation) == len(interval)
