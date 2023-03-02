@@ -9,6 +9,8 @@ def Confusion_Matrix(preds,target,conf_matrix):
   preds=preds.argmax(1)
   for i,j in zip(target,preds):
     conf_matrix[i,j]+=1
+
+  # print("每种睡眠阶段的识别准确率为：{0}".format([rate * 100 for rate in corrects / true_kinds]))
   return conf_matrix
 
 def show_conf_mat(cm,classes,normalize=False,title="Confusion matrix",cmap=plt.cm.Blues):

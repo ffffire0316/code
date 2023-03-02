@@ -12,7 +12,7 @@ class FocalLoss(nn.Module):
         self.gamma=gamma
         self.size_average=size_average
         if alpha is None:
-            self.alpha=Variable(torch.tensor([0.3,2,0.8,1,1]))
+            self.alpha=Variable(torch.tensor([0.00,50,1,1,20]))
         else:
             if isinstance(alpha,Variable):
                 self.alpha=alpha

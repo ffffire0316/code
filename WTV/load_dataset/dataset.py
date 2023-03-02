@@ -98,7 +98,7 @@ if __name__ == "__main__":
     learning_rate = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epochs = 100
+    epochs = 20
     total_train_step = 0
     # 添加tensorboard
     writer = SummaryWriter("./log")
@@ -155,7 +155,11 @@ if __name__ == "__main__":
                 test_loss += loss.clone().mean()
                 test_acc += (test_output.argmax(1) == test_target).sum() / BATCH_SIZE
                 conf_matrix=Confusion_Matrix(preds=test_output,target=test_target,conf_matrix=conf_matrix)
-                # conf_matrix=conf_matrix.cpu()
+
+        corrects = conf_matrix.diagonal(offset=0)
+        true_kinds = conf_matrix.sum(axis=1)
+        precison = corrects / true_kinds
+        print("每种睡眠阶段的识别准确率为：{0}".format([i for i in precison]))
 
         test_loss /= idx + 1
         test_acc /= idx + 1
