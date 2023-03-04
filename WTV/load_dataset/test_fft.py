@@ -38,12 +38,11 @@ class SleepData(Dataset):
         else:
             self.x, self.y = edf_read(data_path,rewrite=False)
 
-        # self.fft()
         # self.proprocessed()
-        # self.x_trans = self.x.reshape(len(self.x), 1, 3000)
-        # self.x_data = torch.from_numpy(self.x_trans).float()
+        self.x_trans = self.x.reshape(len(self.x), 1, 3000)
+        self.x_data = torch.from_numpy(self.x_trans).float()
         # self.y_data = torch.from_numpy(self.y).long()
-        self.fft()
+        self.fft(self.x_data)
     def __getitem__(self, index):
         # pass
         return self.x_data[index], self.y_data[index]
@@ -56,12 +55,12 @@ class SleepData(Dataset):
                                    self.x.shape[0]
         self.x= (self.x - minimums) / (maximums - minimums)
 
-    def fft(self):
+    def fft(self,signal):
         sr=100
         frame_length = int(sr * 0.025)  # 25ms
         hop_length = int(sr * 0.01)  # 10ms
         window = torch.hann_window(frame_length)
-        signal= torch.from_numpy(self.x)
+        # signal= torch.from_numpy(self.x)
         signal = signal.squeeze()
         stft = torch.stft(signal , frame_length, hop_length, window=window)
         # 计算幅度谱，取对数
@@ -84,3 +83,4 @@ class SleepData(Dataset):
         print(n_0, n_1, n_2, n_3, n_4)
 
 sleep_dataset = SleepData(dataset_file_path, is_dataset_file_existing)
+print(sleep_dataset)

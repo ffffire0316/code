@@ -92,7 +92,8 @@ if __name__ == "__main__":
         model = model.cuda()
     # 损失函数
     # loss_fn = nn.CrossEntropyLoss()
-    loss_fn=FocalLoss()
+    alpha = Variable(torch.tensor([0, 1, 0, 0, 0]))
+    loss_fn=FocalLoss(alpha=alpha)
     loss_fn = loss_fn.cuda()
     # 优化器
     learning_rate = 1e-5
@@ -167,6 +168,11 @@ if __name__ == "__main__":
         print("test accuracy{}".format(test_acc))
         writer.add_scalar("test_loss", test_loss, i)
         writer.add_scalar("test_acc", test_acc, i)
+        writer.add_scalar("class 1 acc", precison[0],i)
+        writer.add_scalar("class 2 acc", precison[1],i)
+        writer.add_scalar("class 3 acc", precison[2],i)
+        writer.add_scalar("class 4 acc", precison[3],i)
+        writer.add_scalar("class 5 acc", precison[4],i)
         test_end_time=time.time()
         test_time=test_end_time-test_start_time
         print(f"train cost time {train_time:.3f}s,test cost time {test_time:.3f}s")
