@@ -37,7 +37,9 @@ class Psg_Ann:
         self.label = list(chain.from_iterable(self.label))
         self.label = np.array(self.label)
         self.label = self.label.flatten()
-        print(self.label)
+        self.show_labels_num()
+        # print(self.label)
+
 
     #对数据进行预处理
     def preprocess(self):
@@ -62,7 +64,13 @@ class Psg_Ann:
         data_process = np.array(data_process)
         return data_process
 
-
+    def show_labels_num(self):
+        n_0 = np.sum(self.label == 0)
+        n_1 = np.sum(self.label == 1)
+        n_2 = np.sum(self.label== 2)
+        n_3 = np.sum(self.label == 3)
+        n_4 = np.sum(self.label == 4)
+        print(n_0, n_1, n_2, n_3, n_4)
     # def
     #保存至npy数据类型
     # def

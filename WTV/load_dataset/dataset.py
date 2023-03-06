@@ -20,20 +20,22 @@ import time
 ########################################################################
 # check file is existing
 ########################################################################
-dataset_file_path = os.path.join(working_dir, "data_edf_20_npz\dataset.npz")
-if os.path.isfile(dataset_file_path):
+dataset_file_path = os.path.join(working_dir, "data_edf_20_npz")
+a=os.path.isfile(r"E:\workstation\project\code\WTV\load_dataset\data_edf_20_npz\dataset.npz")
+if os.path.isdir(dataset_file_path):
     is_dataset_file_existing = True
 else:
     from edf_reader import edf_read
-
     dataset_file_path = r"E:\xai-sleep\data\sleepedf"
+    if not os.path.isfile(dataset_file_path):
+        dataset_file_path=r"E:\workstation\reference\xai-sleep\data\sleepedf"
     is_dataset_file_existing = False
 
 # class_dict = { "W", "N1", "N2", "N3", "REM"}
 class SleepData(Dataset):
     def __init__(self, data_path, flag):
         if flag:
-            dataset = np.load(data_path)
+            dataset = np.load(os.path.join(data_path,"dataset.npz"))
             self.x, self.y = dataset["x"], dataset["y"]
         else:
             self.x, self.y = edf_read(data_path,rewrite=False)
