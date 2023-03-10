@@ -56,12 +56,23 @@ class FocalLoss(nn.Module):
         return loss
 
 
+def CapsLoss(y_pred,y_target):
+
+    y_target = torch.zeros(y_target.size(0), 5).scatter_(1, y_target.view(-1, 1), 1.0)
+    L = (
+     y_target * torch.clamp(0.9 - y_pred, min=0.0) ** 2
+     + 0.5 * (1 - y_target) * torch.clamp(y_pred - 0.1, min=0.0) ** 2
+    )
+    L_margin = L.sum(dim=1).mean()
+
+    return L_margin
+
 
 
 
 if __name__ == "__main__":
     output = torch.tensor([[0.9, 0, 0, 0, 0], [0, 0.89, 0, 0, 0],[0,0,3,1,1]])
-    target = torch.tensor([0, 1,2])
+    target = torch.tensor([0, 1, 2])
     lossfun=FocalLoss()
-    loss=lossfun(output,target)
+    loss=CapsLoss(output,target)
     print("focal loss:",loss)

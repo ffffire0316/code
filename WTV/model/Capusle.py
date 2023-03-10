@@ -27,6 +27,7 @@ class CapsuleConv(nn.Module):
         self.relu=nn.ReLU(inplace=True)
     def forward(self,x):
       # in (batch,1,28,28) -> out (batch,256,20,20)
+      # in (batch,1,129,24)->out (batch,256,121,16)
         y=self.conv0(x)
         y=self.relu(y)
         return y
@@ -41,7 +42,7 @@ class PrimaryCaps(nn.Module):
   def forward(self,x):
         # input 8*(batch,32,6,6)->(batch,8,32,6,6)->(batch,8,1152)
     outputs=self.conv(x)
-    outputs=outputs.view(x.size(0), -1, self.dim_caps)
+    outputs=outputs.view(x.size(0), -1, self.dim_caps) #256,57,4
     return squash(outputs)
 
 class DigitsCaps(nn.Module):
@@ -94,14 +95,16 @@ class CapsuleNet(nn.Module):
     self.input_size=input_size
     self.classes=classes
     self.routings=routings
+    # Layer Preprocess
+    self.stlayer=STlayer()
     # Layer 1 Conv Capsule
-    self.convcaps=CapsuleConv(input_size,256)
+    self.convcaps=CapsuleConv(input_size[0],256)
 
     #Layer 2 Primer Capsule
     self.primaryCaps=PrimaryCaps(256,256,8)
     # Layer 3 DigitCaps
     self.digitcaps=DigitsCaps(
-      in_num_caps=6*6*32,
+      in_num_caps=7296,
       in_dim_caps=8,
       out_num_caps=classes,
       out_dim_caps=1,
@@ -114,6 +117,8 @@ class CapsuleNet(nn.Module):
     )
 
   def forward(self,x):
+    # print("输入数据形状",x.size())
+    x=self.stlayer(x)
     print("输入数据形状",x.size())
     x=self.convcaps(x)
     print("输入数据形状", x.size())
@@ -122,15 +127,50 @@ class CapsuleNet(nn.Module):
     x=self.digitcaps(x)
     print("输入数据形状", x.size())
     length=x.norm(dim=-1)
-
+    print(length.size())
     return length
+
+class STlayer(nn.Module):
+  def __init__(self):
+    super(STlayer,self).__init__()
+  def forward(self,signal):
+    sr = 100
+    frame_length = int(sr * 0.025)  # 25ms
+    hop_length = int(sr * 0.01)  # 10ms
+    window = torch.hann_window(256)
+    # signal= torch.from_numpy(self.x)
+    signal = signal.squeeze()
+    stft = torch.stft(signal, n_fft=256, hop_length=128, window=window)
+    spectrogram = torch.sqrt(stft[..., 0] ** 2 + stft[..., 1] ** 2)
+    log_spectrogram = torch.log10(spectrogram + 1e-9)  # 加一个小常数避免对数计算中的除零错误
+    print(log_spectrogram.size())
+
+# def FTlayer(signal):
+#   sr=100
+#   frame_length = int(sr * 0.025)  # 25ms
+#   hop_length = int(sr * 0.01)  # 10ms
+#   window = torch.hann_window(256)
+#   # signal= torch.from_numpy(self.x)
+#   signal = signal.squeeze()
+#   stft = torch.stft(signal,n_fft=256,hop_length=128,window=window)
+#   spectrogram = torch.sqrt(stft[..., 0] ** 2 + stft[..., 1] ** 2)
+#   log_spectrogram = torch.log10(spectrogram + 1e-9)  # 加一个小常数避免对数计算中的除零错误
+#   print(log_spectrogram.size())
+
 if __name__=="__main__":
+  x=torch.rand((10,129,24)).cuda().float()
+  x=x.unsqueeze(1)
+  print(x.size())
+  # input_size=(129,24)
+  # x=FTlayer(x)
+  # (batch,129,24)
   # x=torch.tensor()
-  x=torch.rand((10,1,28,28)).cuda().float()
-  net=CapsuleNet(1,5,3)
+  # x=torch.rand((10,1,28,28)).cuda().float()
+  net=CapsuleNet((1,3000),5,3)
   net=net.cuda()
   y=net(x)
   print(y)
+
   # print(x.size(1))
   # # capusle=CapsuleConv(1).cuda()
   # # y1=capusle(x)

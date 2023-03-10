@@ -1,6 +1,7 @@
 import torch
 import tensorboard
 import time
+# import py
 #
 # print(torch.__version__)  # 查看torch当前版本号
 #
@@ -8,77 +9,48 @@ import time
 #
 # print(torch.cuda.is_available())  # 查看当前cuda是否可用于当前版本的Torch，如果输出True
 import numpy as np
-import pywt
-import matplotlib.pyplot as plt
 import os
-npz_path=r"E:\eason\project\deep learning\WTV\utils"
-import openai
+import glob
+from mne.io import read_raw_edf
+import mne
+import pyedflib
+data_path=r"E:\xai-sleep\data\sleepedf"
+psg_fnames = glob.glob(os.path.join(data_path, "*PSG.edf"))
+ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
+# print(psg_fnames)
 
-def get_npz(npz_path):
-    file_name_list = []
-    file_list = os.listdir(npz_path)
-    for file_name in file_list:
-        if file_name == "dataset.npz":
-            dataset = np.load(os.path.join(npz_path, file_name))
-            dataset_x = dataset["x"]
-            dataset_y = dataset["y"]
-            return dataset_x, dataset_y
+# 写入数据
+raw = read_raw_edf(psg_fnames[0], preload=False, verbose=False)
+sampling_rate = raw.info['sfreq']
+signal_dict = {}
 
-        if file_name[-4:] == ".npz" and file_name != "dataset.npz":
-            file_name_list.append(os.path.join(npz_path, file_name))
-            # 融合数组
-    dataset = np.load(file_name_list[0])
-    dataset_x = dataset["x"]
-    dataset_y = dataset["y"]
-    for file_name in file_name_list[1::]:
-        data = np.load(file_name)
-        data_x = data["x"]
-        data_y = data["y"]
-        dataset_x = np.r_[dataset_x, data_x]
-        dataset_y = np.r_[dataset_y, data_y]
-    np.savez(os.path.join(npz_path, 'dataset.npz'), x=dataset_x, y=dataset_y)
-    return dataset_x, dataset_y
-data_x,data_y=get_npz(npz_path)
-data_test=data_x[0]
+if sampling_rate not in signal_dict: signal_dict[sampling_rate] = []
+signal_dict[sampling_rate].append((raw.ch_names, raw.get_data()))
+# Wrap data into DigitalSignals
+for sfreq, signal_lists in signal_dict.items():
+    data = np.concatenate([x for _, x in signal_lists], axis=0)
+    # data = np.transpose(data)
+    channel_names = [name for names, _ in signal_lists for name in names]
+
+data = data[0:2][:]  # 取第一er个通道数据 即EEG Fpz-Cz
+info = mne.create_info(ch_names=channel_names[0:2], sfreq=sfreq, ch_types='eeg')
+raw = mne.io.RawArray(data, info)
+
+# # 定义EDF文件名
+edf_filename = 'test.edf'
+data2 = read_raw_edf(edf_filename, preload=False, verbose=False).get_data()
+data_=max((data-data2)[1])
+
+print("")
+# raw.save("test.fif",overwrite=True)
+#
+# edf_path = r'E:\eason\project\deep learning\test\test.edf'
+# fif_path = r'E:\eason\project\deep learning\test\test.fif'
+# raw2=mne.io.read_raw_fif(fif_path)
+# mne.export.export_raw(edf_filename,raw2,fmt="edf",overwrite=True)
+
+# raw_edf=mne.io.Raw(edf_filename,verbose="error")
+# raw_edf.save(edf_filename)
+# print("1")
 
 
-aa = []
-for i in range(200):
-    aa.append(np.sin(0.3*np.pi*i))
-for i in range(200):
-    aa.append(np.sin(0.13*np.pi*i))
-for i in range(200):
-    aa.append(np.sin(0.05*np.pi*i))
-y = aa
-y=data_test
-wavename = 'db5'
-cA, cD = pywt.dwt(y, wavename)
-
-ya = pywt.idwt(cA, None, wavename, 'smooth')  # approximated component
-yd = pywt.idwt(None, cD, wavename, 'smooth')  # detailed component
-
-cA2, cD2 = pywt.dwt(yd, wavename)
-ya2 = pywt.idwt(cA2, None, wavename, 'smooth')  # approximated component
-yd2 = pywt.idwt(None, cD2, wavename, 'smooth')  # detailed component
-
-x = range(len(y))
-plt.figure(figsize=(12, 9))
-plt.subplot(411)
-plt.plot(x, y)
-plt.title('original signal')
-
-plt.subplot(412)
-plt.plot(x, ya)
-plt.title('approximated component')
-
-plt.subplot(413)
-plt.plot(x, yd)
-plt.title('detailed component')
-
-plt.subplot(414)
-plt.plot(x, y)
-plt.title('detailed component 2 ')
-
-plt.tight_layout()
-
-plt.show()

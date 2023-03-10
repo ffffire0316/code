@@ -9,8 +9,8 @@ Author: Bruce Hou, Email: ecstayalive@163.com
 import torch
 import torch.fft
 from torch import nn
-from .CapsuleLayer import DenseCapsule, PrimaryCapsule
-from .PreLayers import TFLayer
+from CapsuleLayer import DenseCapsule, PrimaryCapsule
+from PreLayers import TFLayer
 
 
 class CapsuleNet(nn.Module):
@@ -68,4 +68,6 @@ class CapsuleNet(nn.Module):
 
 
 if __name__ == "__main__":
-    pass
+    x = torch.rand((10, 1, 28, 28)).cuda().float()
+    net = CapsuleNet([1,3000], 5, 3)
+    y=net(x)
