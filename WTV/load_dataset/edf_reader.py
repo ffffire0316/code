@@ -5,6 +5,13 @@ from mne.io import read_raw_edf
 import os, sys
 import glob
 
+CHANNEL = {'0': 'EEG Fpz-Cz',
+           '1': 'EEG Pz-Oz',
+           '2': 'EOG horizontal',
+           '3': 'Resp oro-nasal',
+           '4': 'EMG submental',
+           '5': 'Temp rectal',
+           '6': 'Event marker'}
 # from dataset import rewrite
 class_dict = {
     0: "W",

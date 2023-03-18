@@ -13,7 +13,7 @@ import os
 import glob
 from mne.io import read_raw_edf
 import mne
-import pyedflib
+# import pyedflib
 data_path=r"E:\xai-sleep\data\sleepedf"
 psg_fnames = glob.glob(os.path.join(data_path, "*PSG.edf"))
 ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
