@@ -22,6 +22,16 @@ psg_fnames = glob.glob(os.path.join(data_path, "*PSG.edf"))
 ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
 
 get_id=0
+def reproduce_edf():
+    raw=read_raw_edf(psg_fnames[get_id], preload=False, verbose=False)
+    edf_data = read_raw_edf(psg_fnames[get_id], preload=False, verbose=False).get_data()
+    edf_name = "reproduce.edf"
+    export_raw(edf_name,raw,'edf',overwrite=True)
+    raw_re=read_raw_edf(edf_name, preload=False, verbose=False)
+    data_re=raw_re.get_data()
+    reset=edf_data*1000000-data_re
+    pass
+
 def preduce_eeg_eog():
     edf_data = read_raw_edf(psg_fnames[get_id], preload=False, verbose=False).get_data()
     eog0=edf_data[2,:length]
@@ -37,7 +47,7 @@ def preduce_eeg_eog():
     # raw.save(edf_name)
     export_raw(edf_name,raw,'edf',overwrite=True)
 
-def preduce_eeg_edf():
+def produce_eeg_edf():
     data_path1 = r"E:\workstation\project\code\data\Sleep_100hz_Novel_CNN_eog_denoise.npy"
     data_path2 = r"E:\workstation\project\code\data\Sleep_100hz_Simple_CNN_eog_denoise.npy"
     data1 = np.load(data_path1)[get_id, :].reshape(1, length)
@@ -49,7 +59,7 @@ def preduce_eeg_edf():
     # raw.save(edf_name)
     export_raw(edf_name, raw, 'edf', overwrite=True)
 
-def preduce_eeg_edf_origin():
+def produce_eeg_edf_origin():
     # data_path1 = r"E:\workstation\project\code\data\Sleep_100hz_Novel_CNN_eog_denoise.npy"
     # data_path2 = r"E:\workstation\project\code\data\Sleep_100hz_Simple_CNN_eog_denoise.npy"
     # data1 = np.load(data_path1)[get_id, :].reshape(1, length)
@@ -61,7 +71,8 @@ def preduce_eeg_edf_origin():
     edf_name = "people1_eeg_origin.edf"
     export_raw(edf_name, raw, 'edf', overwrite=True)
 
-preduce_eeg_edf_origin()
-edf_name = "people1_eeg_origin.edf"
-edf_data = read_raw_edf(psg_fnames[get_id], preload=False, verbose=False).get_data()
+# produce_eeg_edf_origin()
+# edf_name = "people1_eeg_origin.edf"
+# edf_data = read_raw_edf(psg_fnames[get_id], preload=False, verbose=False).get_data()
+reproduce_edf()
 pass

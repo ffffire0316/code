@@ -68,7 +68,7 @@ def edf_read(data_path, rewrite=False, npz_path=dataset_file_path):
                 data = np.concatenate([x for _, x in signal_lists], axis=0)
                 # data = np.transpose(data)
                 channel_names = [name for names, _ in signal_lists for name in names]
-            data = data[0]  # 取第一个通道数据 即EEG Fpz-Cz
+            # data = data[0]  # 取第一个通道数据 即EEG Fpz-Cz
             # Read the Annotations
             # consist of sleep stages W, R, 1, 2, 3, 4, M (Movement time) and ? (not scored).
             mne_anno: mne.Annotations = mne.read_annotations(ann_fnames[i])

@@ -20,9 +20,9 @@ import time
 ########################################################################
 # check file is existing
 ########################################################################
-dataset_file_path = os.path.join(working_dir, "data_edf_20_npz")
-a=os.path.isfile(r"E:\workstation\project\code\WTV\load_dataset\data_edf_20_npz\dataset.npz")
-if os.path.isdir(dataset_file_path):
+dataset_file_path = os.path.join(working_dir, "data_edf_20_npz\dataset.npz")
+# a=os.path.isfile(r"E:\workstation\project\code\WTV\load_dataset\data_edf_20_npz\dataset.npz")
+if os.path.isfile(dataset_file_path):
     is_dataset_file_existing = True
 else:
     from edf_reader import edf_read
@@ -35,10 +35,10 @@ else:
 class SleepData(Dataset):
     def __init__(self, data_path, flag):
         if flag:
-            dataset = np.load(os.path.join(data_path,"dataset.npz"))
+            dataset = np.load(os.path.join(data_path))
             self.x, self.y = dataset["x"], dataset["y"]
         else:
-            self.x, self.y = edf_read(data_path,rewrite=False)
+            self.x, self.y = edf_read(data_path,rewrite=True)
 
         self.proprocessed()
         self.x_trans = self.x.reshape(len(self.x), 1, 3000)
@@ -69,6 +69,7 @@ class SleepData(Dataset):
 if __name__ == "__main__":
     # 读取数据
     sleep_dataset = SleepData(dataset_file_path, is_dataset_file_existing)
+    # sleep_dataset = SleepData(dataset_file_path, False)
     train, test = torch.utils.data.random_split(
         dataset=sleep_dataset, lengths=[0.7, 0.3]
     )

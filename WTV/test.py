@@ -44,7 +44,5 @@ label=list(chain.from_iterable(label))
 label=np.array(label)
 label=label.flatten()
 
-assert len(label)==len(data_process)
-for i in range(10):
-    print(label[i])
-    print(data_process[i])
+for i in range(len(annotation)-1):
+    print(i)
