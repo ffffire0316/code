@@ -7,15 +7,15 @@ import sys
 working_dir = os.getcwd()
 sys.path.append(working_dir)
 
-from model.model import DeepSleepNet
+from model import DeepSleepNet
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-from model.loss import *
-from model.metric import *
+from loss import *
+from metric import *
 import time
 ########################################################################
 # check file is existing

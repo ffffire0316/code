@@ -89,7 +89,8 @@ class DeepSleepNet(nn.Module):
             WaveletTransLayer()
         )
     def forward(self,x):
-        x=self.prelayer(x)
+        # x=self.prelayer(x)
+        # x.unsqueeze(1)
         x1=self.feature1(x)
         x2=self.feature2(x)
         out1=torch.cat((x1,x2),dim=2) # weidu [bs,128,61]

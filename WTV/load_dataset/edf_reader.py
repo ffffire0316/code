@@ -47,7 +47,7 @@ def edf_read(data_path, rewrite=False, npz_path=dataset_file_path):
     if not rewrite:
         # 读取npz文件
         try:
-            dataset_x, dataset_y = get_npz(os.path.join(npz_path,"dataset.npz"))
+            dataset_x, dataset_y = get_npz(os.path.join(npz_path, "dataset.npz"))
             return dataset_x, dataset_y
         except:
             print("npz do not exist")
