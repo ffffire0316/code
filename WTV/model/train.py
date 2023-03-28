@@ -29,87 +29,108 @@ ann2label = {
     "Movement time": 5
 }
 class Ann:
-    def __init__(self,annotation, interval):
+    def __init__(self,signal,annotation, interval):
 
       self.annotation = annotation
       self.interval = interval
       assert len(annotation) == len(interval)
+      # if annotation[0] == 0:
+      #   self.annotation.pop(0)
+      #   self.interval.pop(0)
       index_start = int(interval[0][0])
       index_end = int(interval[0][1])
       index_len = int((index_end - index_start) / 30)
       self.label = [self.annotation[0]] * index_len
-
+      # self.data=signal[index_start*100:index_end*100]
       for i in range(1, len(annotation)):
         # 对标签进行扩容以匹配data
         # 每个duration的开始结束点
         index_start = int(interval[i][0])
         index_end = int(interval[i][1])
         index_len = int((index_end - index_start) / 30)
-        # 清洗数据 除去annation为5的片段
+        # # 清洗数据 除去annation为5的片段
+        # if annotation[i]==5:
+        #   print("剔除一次")
+        # else:
         self.label += [self.annotation[i]] * index_len
-
+        # self.data=signal
       self.label = np.array(self.label)
-      self.label=self.label[:2606]
+      self.data=signal
+
+      # 取第一个不为0的位置
+      start_idx = np.nonzero(self.label)[0][0]
+      self.data=self.data[start_idx*3000:].reshape(-1,3000)
+      self.label=self.label[start_idx:2606]
+      #剔除 5
+      indices = np.where(self.label == 5)[0]
+      self.data=np.delete(self.data,indices,axis=0)
+      self.label=np.delete(self.label,indices)
+      # for indice in indices:
+      #   np.delete(self, indices)
+      print(indices)
+
+      assert self.data.shape[0]==len(self.label)
       pass
 
 
 def anno_read(data_path, rewrite=False):
-
+  data = np.load(os.path.join(data_path, "Sleep_100hz_Simple_CNN_eog_denoise.npy"))
   ann_fnames = glob.glob(os.path.join(data_path, "*Hypnogram.edf"))
   print("读取edf文件,共{}".format(len(ann_fnames)))
-  anno_list=[]
+  data_list,anno_list=[],[]
   for i in range(20):
 
     mne_anno: mne.Annotations = mne.read_annotations(ann_fnames[i])
     labels = list(sorted(set(mne_anno.description)))
     interval, annotation = [], []
     label2int = {lb: i for i, lb in enumerate(labels)}
-    print(mne_anno)
+    # print(mne_anno)
+    print("in the No.{}".format(i))
     for onset, duration, label in zip(mne_anno.onset, mne_anno.duration, mne_anno.description):
       interval.append((onset, onset + duration))
       annotation.append(ann2label[label])
-    single_ann = Ann(annotation, interval)
+    per_data=data[i]
+    single_ann = Ann(per_data,annotation, interval)
+    data_list.append(single_ann.data)
     anno_list.append(single_ann.label)
-    # Saving as numpy files
-    filename = os.path.basename(ann_fnames[i]).replace(".edf", "(raw).npz")
-    save_dict = {
-      "y": single_ann.label,
-    }
+    if False:
+      # Saving as numpy files
+      filename = os.path.basename(ann_fnames[i]).replace(".edf", "(raw).npz")
+      save_dict = {
+        'x':single_ann.data,
+        "y": single_ann.label,
+      }
+      np.savez(os.path.join(data_path, filename), **save_dict)
+      print(" ---------- have saved the {} file in {} ---------".format(filename, data_path))
+  # anno_dataset=anno_list[0]
+  # for i in range(1,20):
+  #   anno_dataset=np.hstack((anno_dataset,anno_list[i]))
+  # pass
+  # np.save(os.path.join(data_path, "anno_dataset.npy"), anno_dataset)
 
-    np.savez(os.path.join(data_path, filename), **save_dict)
-    print(" ---------- have saved the {} file in {} ---------".format(filename, data_path))
-  anno_dataset=anno_list[0]
-  for i in range(1,20):
-    anno_dataset=np.hstack((anno_dataset,anno_list[i]))
-  pass
-  np.save(os.path.join(data_path, "anno_dataset.npy"), anno_dataset)
-
+  return data_list,anno_list
 
 
 class SleepData(Dataset):
   def __init__(self, data_path, flag):
-    data = np.load(os.path.join(data_path,"Sleep_100hz_Novel_CNN_eog_denoise.npy"))
+    # data = np.load(os.path.join(data_path,"Sleep_100hz_Novel_CNN_eog_denoise.npy"))
+    data,label=anno_read('E:\workstation\Data\sleepedf20')
+    self.data,self.label=data[0],label[0]
+    for i in range(1,len(data)):
+      self.data=np.r_[self.data,data[i]]
+      self.label = np.r_[self.label, label[i]]
     # data=self.proprocessed(data)
-    label=np.load(os.path.join(data_path,"anno_dataset.npy"))
-    data=data.reshape(-1,1,3000)
-    y=data[1,:,:].reshape(-1)
-    import matplotlib.pyplot as plt
-    x=np.arange(3000)
-    plt.figure()
-    plt.plot(x,y)
-    plt.show()
-    pass
+    # label=np.load(os.path.join(data_path,"anno_dataset.npy"))
+    # data=data.reshape(-1,1,3000)
+    # y=data[1,:,:].reshape(-1)
+    # import matplotlib.pyplot as plt
+    # x=np.arange(3000)
+    # plt.figure()
+    # plt.plot(x,y)
+    # plt.show()
+    # pass
 
-    self.data,self.label=[],[]
-    for i in range(len(label)):
-      # a=data[i,:,:]
-      # b=label[i]
-      # if label[i]==
-      if label[i]!=5:
-        self.data.append(data[i,:,:])
-        self.label.append(label[i])
-    self.show_raw_data()
-    self.data=torch.from_numpy(np.array(self.data)).float()
+    self.data=torch.from_numpy(np.array(self.data)).float().unsqueeze(1)
     self.label=torch.from_numpy(np.array(self.label)).long()
 
     pass
@@ -135,7 +156,8 @@ class SleepData(Dataset):
       print(n_0, n_1, n_2, n_3, n_4)
 
 if __name__ == "__main__":
-    dataset_file_path=r"E:\Data\peiyan"
+    # dataset_file_path=r"E:\Data\peiyan"
+    dataset_file_path = r"E:\workstation\Data"
     # anno_path=r"E:\Data\sleepedf"
     # 读取数据
     sleep_dataset = SleepData(dataset_file_path,1)
@@ -163,16 +185,17 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
       model = model.cuda()
     # 损失函数
-    # loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss()
     alpha = Variable(torch.tensor([0.1, 1, 1, 1, 1]))
-    loss_fn = FocalLoss(alpha=alpha)
-    loss_fn = loss_fn.cuda()
+    # loss_fn = FocalLoss(alpha=alpha)
+    if torch.cuda.is_available():
+      loss_fn = loss_fn.cuda()
     # 优化器
     learning_rate = 1e-5
     # learning_rate = 1e-4
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     # 训练轮数
-    epochs = 200
+    epochs = 50
     total_train_step = 0
     # 添加tensorboard
     writer = SummaryWriter("./log")

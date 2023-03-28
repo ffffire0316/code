@@ -10,8 +10,8 @@ class BiLSTM(nn.Module):
         self.num_layer=num_layer
         self.lstm=nn.LSTM(input_size,hidden_size,num_layer,batch_first=True,dropout=0.5,bidirectional=True)
     def forward(self,x):
-        h0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size).cuda()
-        c0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size).cuda()
+        h0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size)
+        c0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size)
 
         out,_=self.lstm(x,(h0,c0))
         return out
