@@ -10,8 +10,9 @@ class BiLSTM(nn.Module):
         self.num_layer=num_layer
         self.lstm=nn.LSTM(input_size,hidden_size,num_layer,batch_first=True,dropout=0.5,bidirectional=True)
     def forward(self,x):
-        h0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size)
-        c0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size)
+
+        h0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size).cuda()
+        c0=torch.zeros(self.num_layer*2,x.size(0),self.hidden_size).cuda()
 
         out,_=self.lstm(x,(h0,c0))
         return out
@@ -50,16 +51,22 @@ class DeepSleepNet(nn.Module):
             nn.Conv1d(in_channels=1, out_channels=64, kernel_size=50,stride=6),
             nn.BatchNorm1d(64),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
-            nn.Dropout(0.1),
-            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8,stride=1),
-            nn.BatchNorm1d(128),
-            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
-            nn.BatchNorm1d(128),
-            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8),
+
+            nn.MaxPool1d(kernel_size=8, stride=8),
+            nn.Dropout(0.5),
+
+            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=8,stride=1,padding="same"),
             nn.BatchNorm1d(128),
             nn.ReLU(inplace=True),
-            nn.MaxPool1d(kernel_size=4, stride=4, padding=2),
+
+            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8,padding="same"),
+            nn.BatchNorm1d(128),
+            nn.ReLU(inplace=True),
+
+            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=8,padding="same"),
+            nn.BatchNorm1d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool1d(kernel_size=4, stride=4),
 
         )
         self.feature2 = nn.Sequential(
@@ -67,20 +74,22 @@ class DeepSleepNet(nn.Module):
             nn.BatchNorm1d(64),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(kernel_size=4, stride=4),
-            nn.Dropout(0.1),
-            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=6),
+            nn.Dropout(0.5),
+            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=6,padding="same"),
             nn.BatchNorm1d(128),
-            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=6,padding="same"),
             nn.BatchNorm1d(128),
-            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=1),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(in_channels=128, out_channels=128, kernel_size=6,padding="same"),
             nn.BatchNorm1d(128),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(kernel_size=2, stride=2),
         )
         self.features_seq=nn.Sequential(
-            BiLSTM(128*61,512,2)
+            BiLSTM(128*21,512,2)
         )
-        self.res=nn.Linear(128*61,1024)
+        self.res=nn.Linear(128*21,1024)
         self.reclassify=nn.Sequential(
             nn.Dropout(),
             nn.Linear(1024,5)
@@ -91,8 +100,8 @@ class DeepSleepNet(nn.Module):
     def forward(self,x):
         # x=self.prelayer(x)
         # x.unsqueeze(1)
-        x1=self.feature1(x)
-        x2=self.feature2(x)
+        x1=self.feature1(x) #[bs,128,15]
+        x2=self.feature2(x) #[bs,128,6]
         out1=torch.cat((x1,x2),dim=2) # weidu [bs,128,61]
         out1=out1.flatten(1,2) # shape [bs,128*61=7808]
         x_seq=out1.unsqueeze(1) #shape [bs,1,7808]
@@ -106,10 +115,18 @@ class DeepSleepNet(nn.Module):
 
 
 if __name__ == "__main__":
-
+    input = np.ones((10, 1, 3000))
+    # input = torch.tensor(input, dtype=torch.float32)
+    # # (batch,1,3000)->(batch,64,53)
+    # conv1 = nn.Conv1d(in_channels=1, out_channels=64, kernel_size=400, stride=50)
+    # maxpool1=nn.MaxPool1d(kernel_size=8, stride=8)
+    # conv2=nn.Conv1d(in_channels=64, out_channels=128, kernel_size=6,stride=1,padding="same")
+    # output = conv1(input)
+    # output1 = maxpool1(output)
+    # output2=conv2(output1)
     model=DeepSleepNet()
     model=model.cuda()
-    input=np.ones((10,1,3000))
+
     input=torch.tensor(input,dtype=torch.float32).cuda()
     output=model(input)
 

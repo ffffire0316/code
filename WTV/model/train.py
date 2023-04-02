@@ -114,7 +114,8 @@ def anno_read(data_path, rewrite=False):
 class SleepData(Dataset):
   def __init__(self, data_path, flag):
     # data = np.load(os.path.join(data_path,"Sleep_100hz_Novel_CNN_eog_denoise.npy"))
-    data,label=anno_read('E:\workstation\Data\sleepedf20')
+    # data,label=anno_read('E:\workstation\Data\sleepedf20')
+    data, label = anno_read('E:\Data\sleepedf')
     self.data,self.label=data[0],label[0]
     for i in range(1,len(data)):
       self.data=np.r_[self.data,data[i]]
